@@ -4,4 +4,6 @@ __pycache__/
 .pytest_cache/
 build/
 dist/
-
+payload-live-*.json
+runpod-*.json
+tmpfiles-upload.json
