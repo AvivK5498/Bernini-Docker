@@ -60,8 +60,6 @@ def create_template(api_key: str, *, args: argparse.Namespace, start_cmd: str) -
         "name": args.template_name,
         "ports": [],
         "readme": "Cold-start Bernini-R serverless template managed from AvivK5498/Bernini-Docker.",
-        "startJupyter": False,
-        "startSsh": False,
         "volumeInGb": 0,
         "volumeMountPath": "/workspace",
     }
