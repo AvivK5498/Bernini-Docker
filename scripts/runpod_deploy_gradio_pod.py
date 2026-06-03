@@ -20,8 +20,11 @@ def main() -> None:
     parser.add_argument("--template-name", default="bernini-r-gradio-pod")
     parser.add_argument("--image", default="pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel")
     parser.add_argument("--gpu", action="append", default=["NVIDIA H200"])
+    parser.add_argument("--gpu-count", type=int, default=1)
     parser.add_argument("--container-disk-gb", type=int, default=300)
     parser.add_argument("--volume-gb", type=int, default=200)
+    parser.add_argument("--network-volume-id", default="")
+    parser.add_argument("--data-center-id", default="")
     parser.add_argument("--port", type=int, default=7860)
     parser.add_argument("--interruptible", action="store_true")
     parser.add_argument("--output", default="runpod-gradio-pod.json")
@@ -51,8 +54,10 @@ def create_template(api_key: str, *, args: argparse.Namespace, start_cmd: str) -
         "dockerEntrypoint": ["bash", "-lc"],
         "dockerStartCmd": [start_cmd],
         "env": {
-            "BERNINI_MODEL_DIR": "/models/Bernini-R-Diffusers",
+            "BERNINI_MODEL_DIR": "/workspace/models/Bernini-R-Diffusers",
             "BERNINI_GRADIO_PORT": str(args.port),
+            "BERNINI_NUM_GPUS": str(args.gpu_count),
+            "HF_HOME": "/workspace/.hf-cache",
         },
         "imageName": args.image,
         "isPublic": False,
@@ -72,6 +77,7 @@ def create_pod(api_key: str, *, args: argparse.Namespace, template_id: str) -> d
         "imageName": args.image,
         "templateId": template_id,
         "gpuTypeIds": args.gpu,
+        "gpuCount": args.gpu_count,
         "gpuTypePriority": "availability",
         "ports": [f"{args.port}/http", "8888/http", "22/tcp"],
         "volumeInGb": args.volume_gb,
@@ -80,6 +86,10 @@ def create_pod(api_key: str, *, args: argparse.Namespace, template_id: str) -> d
         "interruptible": bool(args.interruptible),
         "supportPublicIp": True,
     }
+    if args.network_volume_id:
+        body["networkVolumeId"] = args.network_volume_id
+    if args.data_center_id:
+        body["dataCenterId"] = args.data_center_id
     return _rest(api_key, "POST", "/pods", body)
 
 
