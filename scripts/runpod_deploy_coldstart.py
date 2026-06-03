@@ -33,11 +33,7 @@ def main() -> None:
     if not api_key:
         raise SystemExit("RUNPOD_API_KEY is required")
 
-    start_cmd = [
-        "bash",
-        "-lc",
-        f"curl -fsSL {BOOTSTRAP_URL} -o /tmp/bootstrap_runpod.sh && bash /tmp/bootstrap_runpod.sh",
-    ]
+    start_cmd = f"curl -fsSL {BOOTSTRAP_URL} -o /tmp/bootstrap_runpod.sh && bash /tmp/bootstrap_runpod.sh"
     template = create_template(api_key, args=args, start_cmd=start_cmd)
     endpoint = upsert_endpoint(api_key, args=args, template_id=template["id"])
     result = {"template": template, "endpoint": endpoint}
@@ -45,12 +41,12 @@ def main() -> None:
     print(json.dumps(result, indent=2))
 
 
-def create_template(api_key: str, *, args: argparse.Namespace, start_cmd: list[str]) -> dict[str, Any]:
+def create_template(api_key: str, *, args: argparse.Namespace, start_cmd: str) -> dict[str, Any]:
     body = {
         "category": "NVIDIA",
         "containerDiskInGb": args.container_disk_gb,
-        "dockerEntrypoint": [],
-        "dockerStartCmd": start_cmd,
+        "dockerEntrypoint": ["bash", "-lc"],
+        "dockerStartCmd": [start_cmd],
         "env": {
             "BERNINI_RUNTIME_REPO": "https://github.com/AvivK5498/Bernini-Runtime.git",
             "BERNINI_RUNTIME_BRANCH": "main",
@@ -64,6 +60,8 @@ def create_template(api_key: str, *, args: argparse.Namespace, start_cmd: list[s
         "name": args.template_name,
         "ports": [],
         "readme": "Cold-start Bernini-R serverless template managed from AvivK5498/Bernini-Docker.",
+        "startJupyter": False,
+        "startSsh": False,
         "volumeInGb": 0,
         "volumeMountPath": "/workspace",
     }
@@ -116,4 +114,3 @@ if __name__ == "__main__":
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         raise
-
