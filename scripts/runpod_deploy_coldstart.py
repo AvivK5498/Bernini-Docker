@@ -33,7 +33,12 @@ def main() -> None:
     if not api_key:
         raise SystemExit("RUNPOD_API_KEY is required")
 
-    start_cmd = f"curl -fsSL {BOOTSTRAP_URL} -o /tmp/bootstrap_runpod.sh && bash /tmp/bootstrap_runpod.sh"
+    start_cmd = (
+        "apt-get update && "
+        "apt-get install -y --no-install-recommends curl ca-certificates && "
+        f"curl -fsSL {BOOTSTRAP_URL} -o /tmp/bootstrap_runpod.sh && "
+        "bash /tmp/bootstrap_runpod.sh"
+    )
     template = create_template(api_key, args=args, start_cmd=start_cmd)
     endpoint = upsert_endpoint(api_key, args=args, template_id=template["id"])
     result = {"template": template, "endpoint": endpoint}
